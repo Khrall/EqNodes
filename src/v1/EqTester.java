@@ -39,7 +39,7 @@ public class EqTester {
 	 */
 	
 	// INPUT YOUR TEST EQUATION HERE:
-	public static final String EQUATION = "_pow{2,x}+z_pow{(3+y),3}-_pow{e,_pow{t,2}-3}+_pow{cos,2}(x)";
+	public static final String EQUATION = "_frac{_pow{sin,2}(x),_pow{cos,2}(x)} = _pow{tan,2}(x)";
 	
 	public static void main(String[] args) {
 		

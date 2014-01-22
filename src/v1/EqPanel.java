@@ -1,5 +1,6 @@
 package v1;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -52,6 +53,7 @@ public class EqPanel extends JPanel {
         RenderingHints.VALUE_RENDER_QUALITY);
 		
 		super.paintComponent(g);
+		g2.clearRect(0, 0, getWidth(), getHeight());
 		drawEquation(g);
 	}
 
@@ -128,22 +130,22 @@ public class EqPanel extends JPanel {
 			case EqNode.brackets:
 				switch(root.stateOfBrackets) {
 					case EqNode.OPERAND_INSIDE:
-						drawOperation(root.operands.get(0), root.operands.get(1), cursor, depth, g);
+						drawOperation(root.bracketOperation, root.operands.get(0), root.operands.get(1), cursor, depth, g);
 						break;
 					
 					case EqNode.OPERAND_BEFORE:
 						drawNode(root.operands.get(0), cursor, depth, g);
-						drawOperation(root.operands.get(1), root.operands.get(2), cursor, depth, g);
+						drawOperation(root.bracketOperation, root.operands.get(1), root.operands.get(2), cursor, depth, g);
 						break;
 						
 					case EqNode.OPERAND_AFTER:
-						drawOperation(root.operands.get(0), root.operands.get(1), cursor, depth, g);
+						drawOperation(root.bracketOperation, root.operands.get(0), root.operands.get(1), cursor, depth, g);
 						drawNode(root.operands.get(2), cursor, depth, g);
 						break;
 						
 					case EqNode.ALL_OPERANDS:
 						drawNode(root.operands.get(0), cursor, depth, g);
-						drawOperation(root.operands.get(1), root.operands.get(2), cursor, depth, g);
+						drawOperation(root.bracketOperation, root.operands.get(1), root.operands.get(2), cursor, depth, g);
 						drawNode(root.operands.get(3), cursor, depth, g);
 						break;
 					
@@ -155,18 +157,71 @@ public class EqPanel extends JPanel {
 		
 	}
 	
-	private void drawOperation(EqNode op1, EqNode op2, int[] cursor, int depth, Graphics g) {
+	private void drawOperation(String operation, EqNode op1, EqNode op2, int[] cursor, int depth, Graphics g) {
 		Font f = AsanaMath.deriveFont(FONT_SIZES[depth]);
 		g.setFont(f);
 		FontMetrics fm = g.getFontMetrics();
 		
-		drawNode(op1, cursor, depth, g);
+		int yIncrease = 0, xIncrease = 0;
 		
-		int yIncrease = fm.getHeight() * 5/9;
-		cursor[1] -= yIncrease;
-		cursor[0] += DEPTH_OFFSETS[depth];
-		drawNode(op2, cursor, depth + 1, g);
-		cursor[1] += yIncrease;
+		switch(operation) {
 		
+		case EqNode.POW:
+			drawNode(op1, cursor, depth, g);
+			yIncrease = fm.getHeight() * 5/9;
+			cursor[1] -= yIncrease;
+			cursor[0] += DEPTH_OFFSETS[depth];
+			drawNode(op2, cursor, depth + 1, g);
+			cursor[1] += yIncrease;
+			break;
+			
+		case EqNode.FRAC:
+			yIncrease = fm.getHeight() /2;
+			int rememberX = cursor[0];
+			
+			cursor[1] -= yIncrease;
+			drawNode(op1, cursor, depth, g);
+			
+			int dx1 = cursor[0] - rememberX;
+			cursor[0] = rememberX;
+			cursor[1] += yIncrease;
+			yIncrease = fm.getHeight() * 2/3;
+			cursor[1] += yIncrease;
+			drawNode(op2, cursor, depth, g);
+			int dx2 = cursor[0] - rememberX;
+			cursor[1] -= yIncrease;
+			
+			
+			Graphics2D g2 = (Graphics2D) g;
+			g2.setStroke(new BasicStroke(2));
+			
+			//Expression above is smaller than the one below
+			if(dx1 < dx2) {
+				
+				g2.clearRect(rememberX, cursor[1] - 100, dx2, 90);
+				cursor[0] = rememberX + (dx2 - dx1)/2;
+				yIncrease = fm.getHeight()/2;
+				cursor[1] -= yIncrease;
+				drawNode(op1, cursor, depth, g);
+				cursor[1] += yIncrease;
+				cursor[0] = rememberX + dx2;
+				
+			} else {
+				
+				g2.clearRect(rememberX, cursor[1], dx1, 90);
+				cursor[0] = rememberX + (dx1 - dx2)/2;
+				yIncrease = fm.getHeight()* 2/3;
+				cursor[1] += yIncrease;
+				drawNode(op2, cursor, depth, g);
+				cursor[1] -= yIncrease;
+				cursor[0] = rememberX + dx1;
+				
+			}
+			
+			g2.drawLine(cursor[0], cursor[1] - fm.getHeight()/4, rememberX, cursor[1] - fm.getHeight()/4);
+			
+			break;
+		
+		}
 	}
 }
