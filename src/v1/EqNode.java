@@ -237,11 +237,8 @@ public class EqNode {
 	}
 	
 	private String operationToString(EqNode op1, EqNode op2) {
-		switch(bracketOperation) {
-		
-		case POW:
+		if(bracketOperation.equals(POW)) {
 			return "(" + op1 + ")^(" + op2 + ")";
-			
 		}
 		return "";
 	}
